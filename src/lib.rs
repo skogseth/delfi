@@ -1,15 +1,19 @@
 #![allow(dead_code)]
 use std::path::Path;
-use serde::Serialize;
+// use serde::Serialize;
 
 #[derive(Debug)]
 pub struct Dataset<Iter: Iterator<Item = Data>, Data> {
     iterator: Iter,
 }
 
-impl<Iter: Iterator<Item = Data>, Data> From<Iter> for Dataset<Iter, Data> {
-    fn from(iterator: Iter) -> Self {
-        Dataset { iterator }
+impl<IntoIt, It, Data> From<IntoIt> for Dataset<It, Data>
+where
+    IntoIt: IntoIterator<Item = Data, IntoIter = It>,
+    It: Iterator<Item = Data>,
+{
+    fn from(into_it: IntoIt) -> Self {
+        Dataset { iterator: into_it.into_iter() }
     }
 }
 
@@ -27,8 +31,15 @@ mod tests {
 
     #[test]
     fn from_iterator() {
-        let data_vec = vec![1, 2, 3];
-        let dataset = Dataset::from(data_vec.iter());
+        let iterator = [1, 2, 3].into_iter();
+        let dataset = Dataset::from(iterator);
+        println!("{:?}", dataset);
+    }
+    
+    #[test]
+    fn from_vec() {
+        let vector = vec![1, 2, 3];
+        let dataset = Dataset::from(vector);
         println!("{:?}", dataset);
     }
 }

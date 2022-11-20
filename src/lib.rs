@@ -1,12 +1,62 @@
+/*!
+We want something along the lines of this:
+
+```ignore
+#[derive(Datapoint)]
+struct MyData {
+    tag: String,
+    i: i32,
+    x: f64,
+}
+
+fn main() {
+    let tags = { ... };
+    let ints = { ... };
+    let xs = { ... };
+    let ds = dataset!(MyData; tags, ints, xs);
+    ds.save("./path/to/file.csv")
+}
+```
+
+// Alternatively, inspired by polars
+
+```ignore
+fn main() {
+    let tags = { ... };
+    let ints = { ... };
+    let xs = { ... };
+    let ds = dataset!{
+        "tag" => tags,
+        "i" => ints,
+        "x" => xs,
+    };
+    ds.save("./path/to/file.csv")
+}
+```
+
+```C
+
+```python
+xs = [1, 2, 3]
+for x in xs:
+    print(x)
+
+xs[0] == 1
+```
+
+*/
 #![allow(dead_code)]
 use std::path::Path;
 use serde::Serialize;
+
+pub trait Datapoint: Serialize {}
 
 #[derive(Debug)]
 pub struct Dataset<Iter: Iterator<Item = Data>, Data> {
     iterator: Iter,
 }
 
+// impl IntoIterator for Dataset
 impl<IntoIter, Iter, Data> From<IntoIter> for Dataset<Iter, Data>
 where
     IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
@@ -17,27 +67,23 @@ where
     }
 }
 
-// Setialize functions
-impl<Iter: Iterator<Item = Data>, Data: Serialize + std::fmt::Debug> Dataset<Iter, Data> {
+// Serialize functions
+impl<Iter: Iterator<Item = Data>, Data: Serialize> Dataset<Iter, Data> {
     fn save(self, filepath: &Path) -> Result<(), std::io::Error> {
         let mut writer = csv::Writer::from_path(filepath)?;
-        log::debug!("Writing to file: {:?}", filepath);
         for datapoint in self.iterator {
-            log::debug!("Writing datapoint: {:?}", datapoint);
             writer.serialize(datapoint)?;
-            log::debug!("Succesfull!");
         }
-        log::debug!("Finished writing data, flushing");
         writer.flush()?;
-        log::debug!("Write succesfull!");
         Ok(())
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    
 
     #[test]
     fn from_iterator() {
@@ -67,7 +113,7 @@ mod tests {
         let zipped = std::iter::zip(chars, numbers);
         let data = zipped.map(|x| Count { character: x.0, count: x.1 } );
         let dataset = Dataset::from(data);
-        let path = std::path::PathBuf::from("test.csv");
+        let path = std::path::PathBuf::from("./data/test.csv");
         let result = dataset.save(&path);
         result.unwrap();
     }

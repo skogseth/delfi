@@ -69,12 +69,11 @@ impl<const COLS: usize, Data: Default + Copy> Dataset<std::vec::IntoIter<[Data; 
             data.push(row);
         }
         let data = data.into_iter();
-        let labels = if let Some(labels) = labels.into() {
-            let labels: [String; COLS] = labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap();
-            Some(labels)
-        } else {
-            None
-        };
+
+        let labels: Option<[String; COLS]> = labels.into().and_then(|labels| {
+            Some(labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap())
+        }); 
+        
         Dataset { labels, data }
     }
 }

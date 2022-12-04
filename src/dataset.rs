@@ -15,13 +15,45 @@ where
     }
 }
 
+/** 
+Takes in a set of columns and creates a dataset from these. Labels can optionally be passed as well.
+
+# Examples
+```
+use delfi::Dataset;
+
+let t = [0, 1, 2, 3, 4, 5];
+let x = [2, 3, 5, 8, 12, 17];
+let _ = Dataset::columns([t, x], ["time", "length"]);
+```
+
+Labels can also be turned off
+
+```
+use delfi::Dataset;
+
+let t = [0, 1, 2, 3, 4, 5];
+let x = [2, 3, 5, 8, 12, 17];
+let _ = Dataset::columns([t, x], None);
+```
+
+and technically they also accept to be passed via `Some(_)`, but why would you?
+
+```
+use delfi::Dataset;
+
+let t = [0, 1, 2, 3, 4, 5];
+let x = [2, 3, 5, 8, 12, 17];
+let _ = Dataset::columns([t, x], Some(["time", "length"]));
+```
+*/
 impl<const COLS: usize, Data: Default + Copy> Dataset<std::vec::IntoIter<[Data; COLS]>, COLS, Data> 
 {
-    pub fn columns<IntoIter, Iter, S>(cols: [IntoIter; COLS], labels: impl Into<Option<[S; COLS]>>) -> Self 
+    pub fn columns<'a, IntoIter, Iter, Labels>(cols: [IntoIter; COLS], labels: Labels) -> Self 
     where
        IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
        Iter: Iterator<Item = Data> + std::fmt::Debug,
-       S: ToString,
+       Labels: Into<Option<[&'a str; COLS]>>,
     {
         let mut cols: [Iter; COLS] = cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into().unwrap();
         let mut data: Vec<[Data; COLS]> = Vec::new();
@@ -38,7 +70,7 @@ impl<const COLS: usize, Data: Default + Copy> Dataset<std::vec::IntoIter<[Data; 
         }
         let data = data.into_iter();
         let labels = if let Some(labels) = labels.into() {
-            let labels: [String; COLS] = labels.into_iter().map(|x| x.to_string()).collect::<Vec<String>>().try_into().unwrap();
+            let labels: [String; COLS] = labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap();
             Some(labels)
         } else {
             None

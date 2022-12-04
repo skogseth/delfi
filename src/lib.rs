@@ -1,28 +1,5 @@
 /*!
-This crate is very much a work in progress, but it can be used to some extent already.
-An example of how to save data to a csv-file can be seen below:
-
-# Example
-```
-use serde::Serialize;
-use delfi::Dataset;
-
-#[derive(Serialize, Debug)]
-struct Count {
-    character: char,
-    count: u32,
-}
-
-fn main() {
-    let chars = vec!['h', 'l', 'j'];
-    let numbers = vec![115, 83, 24];
-    let zipped = std::iter::zip(chars, numbers);
-    let data = zipped.map(|x| Count { character: x.0, count: x.1 } );
-    let dataset = Dataset::from(data);
-    let path = std::path::PathBuf::from("./data/test.csv");
-    dataset.save_series(&path).unwrap();
-}
-```
+This crate is very much a work in progress!
 
 We want something along the lines of this:
 
@@ -57,8 +34,9 @@ mod data;
 pub trait Datapoint {}
 
 #[derive(Debug)]
-pub struct Dataset<Iter: Iterator<Item = Data>, Data> {
-    iterator: Iter,
+pub struct Dataset<Iter: Iterator<Item = [Data; COLS]>, const COLS: usize, Data> {
+    labels: Option<[String; COLS]>,
+    data: Iter,
 }
 
 #[macro_export]

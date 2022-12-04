@@ -5,23 +5,29 @@ use crate::{Datapoint, Dataset};
 
 impl<S: Serialize> Datapoint for S {}
 
-// impl IntoIterator for Dataset
-impl<IntoIter, Iter, Data> From<IntoIter> for Dataset<Iter, Data>
-where
-    IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
-    Iter: Iterator<Item = Data>,
+impl<IntoIter, Iter, const COLS: usize, Data> From<IntoIter> for Dataset<Iter, COLS, Data> 
+where 
+    IntoIter: IntoIterator<Item = [Data; COLS], IntoIter = Iter>,
+    Iter: Iterator<Item = [Data; COLS]>,
 {
-    fn from(into_iterator: IntoIter) -> Self {
-        Dataset { iterator: into_iterator.into_iter() }
+    fn from(vals: IntoIter) -> Self {
+        Dataset {
+            labels: None,
+            data: vals.into_iter(),
+        }
     }
 }
 
-// Serialize functions
-impl<Iter: Iterator<Item = Data>, Data: Serialize> Dataset<Iter, Data> {
-    pub fn save_series(self, filepath: &Path) -> Result<(), std::io::Error> {
+// Data implements Display
+impl<Iter: Iterator<Item = [Data; COLS]>, const COLS: usize, Data: std::fmt::Display> Dataset<Iter, COLS, Data> {
+    pub fn save(self, filepath: &Path) -> Result<(), std::io::Error> {
         let mut writer = csv::Writer::from_path(filepath)?;
-        for datapoint in self.iterator {
-            writer.serialize(datapoint)?;
+        if let Some(labels) = self.labels {
+            writer.write_record(&labels)?;
+        }
+        for datapoint in self.data {
+            let record = datapoint.iter().map(|x| format!("{}", x));
+            writer.write_record(record)?;
         }
         writer.flush()?;
         Ok(())
@@ -33,15 +39,22 @@ mod tests {
     use super::*;    
 
     #[test]
+    fn from_array() {
+        let iterator = [[1, 2], [3, 4], [5, 6]];
+        let dataset = Dataset::from(iterator);
+        println!("{:?}", dataset);
+    }
+
+    #[test]
     fn from_iterator() {
-        let iterator = [1, 2, 3].into_iter();
+        let iterator = [[1, 2], [3, 4], [5, 6]].into_iter();
         let dataset = Dataset::from(iterator);
         println!("{:?}", dataset);
     }
     
     #[test]
     fn from_vec() {
-        let vector = vec![1, 2, 3];
+        let vector = vec![[1, 2], [3, 4], [5, 6]];
         let dataset = Dataset::from(vector);
         println!("{:?}", dataset);
     }

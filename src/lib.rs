@@ -1,7 +1,6 @@
 /*!
 This crate is very much a work in progress!
-
-We want something along the lines of this:
+We want something along the lines of this
 
 ```ignore
 fn main() {
@@ -9,27 +8,40 @@ fn main() {
     let ints = { ... };
     let xs = { ... };
     let ds = Dataset::columns([tags, ints, xs], ["tag", "int", "x"]);
-    ds.save("./path/to/file.csv")
+    ds.save("./path/to/file.csv").unwrap();
 }
 ```
 
-and this
+but for now the data must be of the same type (and implement both Default and Display)
 
-```ignore
+```
+use delfi::Dataset;
+
 fn main() {
-    let tags = { ... };
-    let ints = { ... };
-    let xs = { ... };
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let ds = Dataset::columns([t, x], ["time", "length"]);
+    // ds.save("./data/examples/columns.csv").unwrap();
+}
+```
+
+Alternatively, using the macro:
+
+```
+use delfi::{Dataset, dataset};
+
+fn main() {
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
     let ds = dataset!{
-        "tag" => tags,
-        "i" => ints,
-        "x" => xs,
+        "time" => t,
+        "length" => x,
     };
-    ds.save("./path/to/file.csv")
+    // ds.save("./data/examples/macros.csv").unwrap();
 }
 ```
 */
-mod data;
+mod dataset;
 
 pub trait Datapoint {}
 

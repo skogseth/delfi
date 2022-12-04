@@ -1,30 +1,6 @@
 /*!
-This crate is very much a work in progress, but it can be used to some extent already.
-An example of how to save data to a csv-file can be seen below:
-
-# Example
-```
-use serde::Serialize;
-use delfi::Dataset;
-
-#[derive(Serialize, Debug)]
-struct Count {
-    character: char,
-    count: u32,
-}
-
-fn main() {
-    let chars = vec!['h', 'l', 'j'];
-    let numbers = vec![115, 83, 24];
-    let zipped = std::iter::zip(chars, numbers);
-    let data = zipped.map(|x| Count { character: x.0, count: x.1 } );
-    let dataset = Dataset::from(data);
-    let path = std::path::PathBuf::from("./data/test.csv");
-    dataset.save_series(&path).unwrap();
-}
-```
-
-We want something along the lines of this:
+This crate is very much a work in progress!
+We want something along the lines of this
 
 ```ignore
 fn main() {
@@ -32,77 +8,52 @@ fn main() {
     let ints = { ... };
     let xs = { ... };
     let ds = Dataset::columns([tags, ints, xs], ["tag", "int", "x"]);
-    ds.save("./path/to/file.csv")
+    ds.save("./path/to/file.csv").unwrap();
 }
 ```
 
-and this
+but for now the data must be of the same type (and implement both Default and Display)
 
-```ignore
+```
+use delfi::Dataset;
+
 fn main() {
-    let tags = { ... };
-    let ints = { ... };
-    let xs = { ... };
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let ds = Dataset::columns([t, x], ["time", "length"]);
+    // ds.save("./data/examples/columns.csv").unwrap();
+}
+```
+
+Alternatively, using the macro:
+
+```
+use delfi::{Dataset, dataset};
+
+fn main() {
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
     let ds = dataset!{
-        "tag" => tags,
-        "i" => ints,
-        "x" => xs,
+        "time" => t,
+        "length" => x,
     };
-    ds.save("./path/to/file.csv")
+    // ds.save("./data/examples/macros.csv").unwrap();
 }
 ```
 */
-use std::path::Path;
-use serde::Serialize;
+mod dataset;
 
 pub trait Datapoint {}
 
-impl<S: Serialize> Datapoint for S {}
-
 #[derive(Debug)]
-pub struct Dataset<Iter: Iterator<Item = Data>, Data> {
-    iterator: Iter,
+pub struct Dataset<Iter: Iterator<Item = [Data; COLS]>, const COLS: usize, Data> {
+    labels: Option<[String; COLS]>,
+    data: Iter,
 }
 
-// impl IntoIterator for Dataset
-impl<IntoIter, Iter, Data> From<IntoIter> for Dataset<Iter, Data>
-where
-    IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
-    Iter: Iterator<Item = Data>,
-{
-    fn from(into_iterator: IntoIter) -> Self {
-        Dataset { iterator: into_iterator.into_iter() }
-    }
+#[macro_export]
+macro_rules! dataset {
+    ($($name:expr => $values:expr), + $(,)?) => {{
+        Dataset::columns([$($values),+], [$($name),+])
+    }};
 }
-
-// Serialize functions
-impl<Iter: Iterator<Item = Data>, Data: Serialize> Dataset<Iter, Data> {
-    pub fn save_series(self, filepath: &Path) -> Result<(), std::io::Error> {
-        let mut writer = csv::Writer::from_path(filepath)?;
-        for datapoint in self.iterator {
-            writer.serialize(datapoint)?;
-        }
-        writer.flush()?;
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;    
-
-    #[test]
-    fn from_iterator() {
-        let iterator = [1, 2, 3].into_iter();
-        let dataset = Dataset::from(iterator);
-        println!("{:?}", dataset);
-    }
-    
-    #[test]
-    fn from_vec() {
-        let vector = vec![1, 2, 3];
-        let dataset = Dataset::from(vector);
-        println!("{:?}", dataset);
-    }
-}
-

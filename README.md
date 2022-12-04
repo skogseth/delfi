@@ -8,9 +8,25 @@ A basic use of delfi is shown below:
 use delfi::Dataset;
 
 fn main() {
-    let t = [1.0, 2.0, 3.0];
-    let x = [0.0, 2.0, 4.0];
+    let t = vec![0.0, 1.0, 2.0];
+    let x = vec![0.0, 2.0, 6.0];
     let dataset = Dataset::columns([t, x], ["time", "length"]);
+    dataset.save("./path/to/file.csv").unwrap();
+}
+```
+
+Alternatively you can use the macro for slightly longer, but perhaps more readable, code:
+
+```rust
+use delfi::dataset;
+
+fn main() {
+    let t = vec![0.0, 1.0, 2.0];
+    let x = vec![0.0, 2.0, 6.0];
+    let dataset = dataset!{
+        "time" => t,
+        "length" => x,
+    };
     dataset.save("./path/to/file.csv").unwrap();
 }
 ```

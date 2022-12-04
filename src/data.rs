@@ -1,9 +1,6 @@
 use std::path::Path;
-use serde::Serialize;
 
-use crate::{Datapoint, Dataset};
-
-impl<S: Serialize> Datapoint for S {}
+use crate::Dataset;
 
 impl<IntoIter, Iter, const COLS: usize, Data> From<IntoIter> for Dataset<Iter, COLS, Data> 
 where 
@@ -15,6 +12,26 @@ where
             labels: None,
             data: vals.into_iter(),
         }
+    }
+}
+
+impl<const COLS: usize, Data: Default + Copy> Dataset<std::vec::IntoIter<[Data; COLS]>, COLS, Data> 
+{
+    pub fn columns(mut cols: [impl Iterator<Item = Data>; COLS], labels: Option<[String; COLS]>) -> Self {
+        let mut data: Vec<[Data; COLS]> = Vec::new();
+        'outer: loop {
+            let mut row = [Data::default(); COLS];
+            for i in 0..COLS {
+                if let Some(data) = cols[i].next() {
+                    row[i] = data;
+                } else {
+                    break 'outer;
+                }
+            }
+            data.push(row);
+        }
+        let data = data.into_iter();
+        Dataset { labels, data }
     }
 }
 

@@ -52,10 +52,13 @@ impl<const COLS: usize, Data: Default + Copy> Dataset<std::vec::IntoIter<[Data; 
     pub fn columns<'a, IntoIter, Iter, Labels>(cols: [IntoIter; COLS], labels: Labels) -> Self 
     where
        IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
-       Iter: Iterator<Item = Data> + std::fmt::Debug,
+       Iter: Iterator<Item = Data>,
        Labels: Into<Option<[&'a str; COLS]>>,
     {
-        let mut cols: [Iter; COLS] = cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into().unwrap();
+        let mut cols: [Iter; COLS] = match cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
+            Ok(val) => val,
+            Err(_) => panic!("This should never be reached"),
+        };
         let mut data: Vec<[Data; COLS]> = Vec::new();
         'outer: loop {
             let mut row = [Data::default(); COLS];

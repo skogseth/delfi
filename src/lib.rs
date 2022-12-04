@@ -54,6 +54,6 @@ pub struct Dataset<Iter: Iterator<Item = [Data; COLS]>, const COLS: usize, Data>
 #[macro_export]
 macro_rules! dataset {
     ($($name:expr => $values:expr), + $(,)?) => {{
-        Dataset::columns([$($values),+], [$($name),+])
+        delfi::Dataset::columns([$($values),+], [$($name),+])
     }};
 }

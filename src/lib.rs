@@ -28,7 +28,7 @@ fn main() {
 Alternatively, using the macro:
 
 ```
-use delfi::{Dataset, dataset};
+use delfi::dataset;
 
 fn main() {
     let t = [0, 1, 2, 3, 4, 5];
@@ -40,12 +40,39 @@ fn main() {
     // ds.save("./data/examples/macros.csv").unwrap();
 }
 ```
+
+They function with anything iterable, e.g. ndarrays:
+```
+use delfi::dataset;
+use ndarray::Array;
+
+fn main() -> Result<(), std::io::Error> {
+    const N: usize = 1000;
+    let x = Array::linspace(0., 10., N+1);
+    let y = Array::logspace(10., 0., 2., N+1);
+    
+    let data = dataset!{
+        "x" => x,
+        "y" => y,
+    };
+    // let filepath = std::fs::canonicalize("./data/test.csv")?;
+    // data.save(&filepath)?;
+
+    Ok(())
+}
+```
+
 */
 mod dataset;
 
 pub trait Datapoint {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct Dataseries<Iter: Iterator<Item = Data>, Data: Datapoint> {
+    data: Iter,
+}
+
+#[derive(Debug, Clone)]
 pub struct Dataset<Iter: Iterator<Item = [Data; COLS]>, const COLS: usize, Data> {
     labels: Option<[String; COLS]>,
     data: Iter,

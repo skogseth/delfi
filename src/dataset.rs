@@ -46,24 +46,23 @@ use delfi::Dataset;
 
 let t = [0, 1, 2, 3, 4, 5];
 let x = [2, 3, 5, 8, 12, 17];
-let _ = Dataset::columns([t, x], Some(["time", "length"]));
+let _ = Dataset::columns([&t, &x], Some(["time", "length"]));
 ```
 */
-/*
-impl<const COLS: usize, Data: Datapoint<COLS> + Default + Copy, DataElement> Dataset<COLS, Data> {
+impl<const COLS: usize, DataElement: Default + Copy + std::fmt::Display> Dataset<COLS, [DataElement; COLS]> {
     pub fn columns<'a, IntoIter, Iter, Labels>(cols: [IntoIter; COLS], labels: Labels) -> Self 
     where
-       IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
-       Iter: Iterator<Item = DataElement>,
-       Labels: Into<Option<[&'a str; COLS]>>,
+        IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
+        Iter: Iterator<Item = DataElement>,
+        Labels: Into<Option<[&'a str; COLS]>>,
     {
-        let mut cols: [Iter; COLS] = match cols.into_iter().map(IntoIter::into_iter).collect::<Vec<Iter>>().try_into() {
+        let mut cols: [Iter; COLS] = match cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
             Ok(val) => val,
             Err(_) => panic!("This should never be reached"),
         };
-        let mut data: Vec<Data> = Vec::new();
+        let mut data: Vec<[DataElement; COLS]> = Vec::new();
         'outer: loop {
-            let mut row = [String; COLS];
+            let mut row = [DataElement::default(); COLS];
             for i in 0..COLS {
                 if let Some(data) = cols[i].next() {
                     row[i] = data;
@@ -82,7 +81,6 @@ impl<const COLS: usize, Data: Datapoint<COLS> + Default + Copy, DataElement> Dat
         Dataset { labels, data }
     }
 }
-*/
 
 impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     pub fn save(self, filepath: &Path) -> Result<(), std::io::Error> {

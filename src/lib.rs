@@ -12,7 +12,7 @@ fn main() {
 }
 ```
 
-but for now the data must be of the same type (and implement both Default)
+but for now the data must be of the same type (and implement Default)
 
 ```
 use delfi::Dataset;
@@ -80,7 +80,6 @@ pub trait Datapoint<const N: usize> {
 #[macro_export]
 macro_rules! dataset {
     ($($name:expr => $values:expr), + $(,)?) => {{
-        unimplemented!()
         delfi::Dataset::columns([$($values),+], [$($name),+])
     }};
 }

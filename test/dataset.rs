@@ -1,5 +1,6 @@
 use delfi::Dataset;
 
+/*
 #[test]
 fn columns_using_arrays() {
     let x = [1, 2, 3];
@@ -34,3 +35,5 @@ fn macro_using_vectors() {
     let dataset = Dataset::columns([t,x], ["time", "length"]);
     data.save("./resources/data/tests/macro-vectors.csv").unwrap();
 }
+
+*/

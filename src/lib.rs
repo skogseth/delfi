@@ -12,7 +12,7 @@ fn main() {
 }
 ```
 
-but for now the data must be of the same type (and implement both Default and Display)
+but for now the data must be of the same type (and implement both Default)
 
 ```
 use delfi::Dataset;
@@ -63,24 +63,24 @@ fn main() -> Result<(), std::io::Error> {
 ```
 
 */
-mod dataset;
 
-pub trait Datapoint {}
+pub mod dataset;
+pub mod datapoint;
 
 #[derive(Debug, Clone)]
-pub struct Dataseries<Iter: Iterator<Item = Data>, Data: Datapoint> {
-    data: Iter,
+pub struct Dataset<const COLS: usize, Data: Datapoint<COLS>> {
+    labels: Option<[String; COLS]>,
+    data: Vec<Data>,
 }
 
-#[derive(Debug, Clone)]
-pub struct Dataset<Iter: Iterator<Item = [Data; COLS]>, const COLS: usize, Data> {
-    labels: Option<[String; COLS]>,
-    data: Iter,
+pub trait Datapoint<const N: usize> {
+    fn record(&self) -> [String; N];
 }
 
 #[macro_export]
 macro_rules! dataset {
     ($($name:expr => $values:expr), + $(,)?) => {{
+        unimplemented!()
         delfi::Dataset::columns([$($values),+], [$($name),+])
     }};
 }

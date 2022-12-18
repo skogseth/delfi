@@ -11,7 +11,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn trait_object() {
+    fn single_element() {
+        let data = 3.14;
+        let datapoint: &dyn Datapoint<1> = &[data];
+        let record = datapoint.record();
+        let compare = [String::from("3.14")];
+        assert_eq!(record, compare);
+    }
+
+    #[test]
+    fn multiple_elements() {
         let data = [0, 1, 2];
         let datapoint: &dyn Datapoint<3> = &data;
         let record = datapoint.record();

@@ -3,6 +3,15 @@ use std::path::Path;
 use crate::Dataset;
 use crate::Datapoint;
 
+/**
+use delfi::Dataset;
+
+let dp1 = [0.5, 1.0, 2.4];
+let dp2 = [2.1, 3.6, 5.3];
+let dp3 = [4.1, 3.2, 2.2];
+
+let _ = Dataset::from([dp1, dp2, dp3]); 
+*/
 impl<const COLS: usize, IntoIter, Iter, Data> From<IntoIter> for Dataset<COLS, Data> 
 where 
     IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,

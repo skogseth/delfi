@@ -27,17 +27,19 @@ let dataset = dataset!{
 dataset.save("./path/to/file.csv").unwrap();
 ```
 
+It works with anything iterable, so long as they are the same type. Here is an example using ndarray:
+
 ```rust
 use delfi::dataset;
 use ndarray::Array;
 
 const N: usize = 1000;
-let x = Array::linspace(0., 10., N+1);
-let y = Array::logspace(10., 0., 2., N+1);
+let t = Array::linspace(0., 10., N+1);
+let x = Array::logspace(10., 0., 2., N+1);
 
 let dataset = dataset!{
-    "x" => x,
-    "y" => y,
+    "time" => t,
+    "length" => x,
 };
 
 dataset.save("./path/to/file.csv").unwrap();

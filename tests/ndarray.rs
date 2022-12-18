@@ -1,5 +1,9 @@
+use std::path::PathBuf;
+
 use delfi::{dataset, Dataset};
 use ndarray::Array;
+
+const ROOT: &str = "./resources/data/tests/ndarray";
 
 #[test]
 fn columns_using_arrays() {
@@ -7,9 +11,10 @@ fn columns_using_arrays() {
     let t = Array::linspace(0., 10., N+1);
     let x = Array::logspace(10., 0., 2., N+1);
     
-    let _dataset = Dataset::columns([t,x], ["time", "length"]);
+    let dataset = Dataset::columns([t,x], ["time", "length"]);
     
-    //dataset.save("./resources/data/tests/columns-vectors.csv").unwrap();
+    let filepath = PathBuf::from(ROOT).join("columns-arrays.csv");
+    dataset.save(filepath).unwrap();
 }
 
 #[test]
@@ -18,10 +23,11 @@ fn macro_using_arrays() {
     let t = Array::linspace(0., 10., N+1);
     let x = Array::logspace(10., 0., 2., N+1);
         
-    let _dataset = dataset!{
+    let dataset = dataset!{
         "time" => t,
         "length" => x,
     };
 
-    //dataset.save("./resources/data/tests/macro-vectors.csv").unwrap();
+    let filepath = PathBuf::from(ROOT).join("macro-arrays.csv");
+    dataset.save(filepath).unwrap();
 }

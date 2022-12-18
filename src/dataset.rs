@@ -98,7 +98,7 @@ impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]
 }
 
 impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
-    pub fn save(self, filepath: &Path) -> Result<(), std::io::Error> {
+    pub fn save<P: AsRef<Path>>(self, filepath: P) -> Result<(), std::io::Error> {
         let mut writer = csv::Writer::from_path(filepath)?;
         if let Some(labels) = self.labels {
             writer.write_record(&labels)?;

@@ -10,7 +10,7 @@ let ds = Dataset::columns([tags, ints, xs], ["tag", "int", "x"]);
 ds.save("./path/to/file.csv").unwrap();
 ```
 
-but for now the data must be of the same type (and implement Default)
+but for now the data must be of the same type
 
 ```
 use delfi::Dataset;

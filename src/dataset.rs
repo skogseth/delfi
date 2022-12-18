@@ -49,7 +49,7 @@ let x = [2, 3, 5, 8, 12, 17];
 let _ = Dataset::columns([&t, &x], Some(["time", "length"]));
 ```
 */
-impl<const COLS: usize, DataElement: Default + Copy + std::fmt::Display> Dataset<COLS, [DataElement; COLS]> {
+impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]> {
     pub fn columns<'a, IntoIter, Iter, Labels>(cols: [IntoIter; COLS], labels: Labels) -> Self 
     where
         IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
@@ -57,25 +57,31 @@ impl<const COLS: usize, DataElement: Default + Copy + std::fmt::Display> Dataset
         Labels: Into<Option<[&'a str; COLS]>>,
     {
         let mut cols: [Iter; COLS] = match cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
+            // This segment is matched because unwrap requires Debug to be implemented for IntoIterator
             Ok(val) => val,
             Err(_) => panic!("This should never be reached"),
         };
-        let mut data: Vec<[DataElement; COLS]> = Vec::new();
+        let mut data = Vec::new();
         'outer: loop {
-            let mut row = [DataElement::default(); COLS];
-            for i in 0..COLS {
-                if let Some(data) = cols[i].next() {
-                    row[i] = data;
+            let mut temp = Vec::with_capacity(COLS);
+            for col in cols.iter_mut() {
+                if let Some(data) = col.next() {
+                    temp.push(data);
                 } else {
                     break 'outer;
                 }
             }
+            let row: [DataElement; COLS] = match temp.try_into() {
+                // This segment is matched because unwrap requires Debug to be implemented for DataElement
+                Ok(val) => val,
+                Err(_) => panic!("This should never be reached"),
+            };
             data.push(row);
         }
         let data = data;
 
-        let labels: Option<[String; COLS]> = labels.into().and_then(|labels| {
-            Some(labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap())
+        let labels: Option<[String; COLS]> = labels.into().map(|labels| {
+            labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap()
         }); 
         
         Dataset { labels, data }

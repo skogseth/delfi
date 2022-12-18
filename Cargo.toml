@@ -1,6 +1,6 @@
 [package]
 name = "delfi"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2021"
 license = "MIT"
 description = "Conveniently writing data to csv-files"
@@ -9,6 +9,6 @@ keywords = ["csv", "data"]
 
 [dependencies]
 csv = "1.1"
-log = "0.4"
-serde = { version = "1.0", features = ["derive"] }
 
+[dev-dependencies]
+ndarray = "0.15"

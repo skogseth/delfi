@@ -18,7 +18,7 @@ use delfi::Dataset;
 let t = [0, 1, 2, 3, 4, 5];
 let x = [2, 3, 5, 8, 12, 17];
 let ds = Dataset::columns([t, x], ["time", "length"]);
-// ds.save("./data/examples/columns.csv").unwrap();
+ds.save("./resources/data/examples/columns.csv").unwrap();
 ```
 
 Alternatively, using the macro:
@@ -32,7 +32,7 @@ let ds = dataset!{
     "time" => t,
     "length" => x,
 };
-// ds.save("./data/examples/macros.csv").unwrap();
+ds.save("./resources/data/examples/macro.csv").unwrap();
 ```
 
 They function with anything iterable, e.g. ndarrays:
@@ -44,12 +44,14 @@ const N: usize = 1000;
 let x = Array::linspace(0., 10., N+1);
 let y = Array::logspace(10., 0., 2., N+1);
 
-let data = dataset!{
+let dataset = dataset!{
     "x" => x,
     "y" => y,
 };
-// let filepath = std::fs::canonicalize("./data/test.csv").unwrap();
-// data.save(&filepath).unwrap();
+
+let directory = std::fs::canonicalize("./resources/data/examples/").unwrap();
+let filepath = directory.join("ndarray.csv");
+dataset.save(&filepath).unwrap();
 ```
 
 */

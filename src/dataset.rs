@@ -3,6 +3,101 @@ use std::path::Path;
 use crate::Dataset;
 use crate::Datapoint;
 
+
+impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
+    /**
+    Function for creating new (empty) dataset
+    */
+    pub fn new() -> Self {
+        Dataset {
+            labels: None,
+            data: Vec::new(),
+        }
+    }
+
+    /**
+    Push a new row to the dataset
+    */
+    pub fn push(&mut self, datapoint: Data) {
+        self.data.push(datapoint)
+    }
+
+    /**
+    Get current length of dataset
+    */
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    /**
+    Get current labels
+    */
+    pub fn get_labels(&self) -> Option<&[String; COLS]> {
+        self.labels.as_ref()
+    }
+
+    /**
+    Set labels of the given dataset. 
+    Constructors return dataset with labels set to None unless otherwise specified.
+    
+    ```
+    use delfi::Dataset;
+
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let mut dataset = Dataset::columns([t, x]);
+    dataset.set_labels(["time", "length"]);
+    ```
+
+    Labels can also be turned off
+
+    ```
+    use delfi::Dataset;
+
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let mut dataset = Dataset::columns([t, x]);
+    dataset.set_labels(["time", "length"]);
+    dataset.set_labels(None);
+    ```
+
+    and technically also accept labels to be passed via `Some(_)`, but why would you?
+
+    ```
+    use delfi::Dataset;
+
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let mut dataset = Dataset::columns([&t, &x]);
+    dataset.set_labels(Some(["time", "length"]));
+    ```
+    */
+    pub fn set_labels<'a, Labels>(&mut self, labels: Labels) where Labels: Into<Option<[&'a str; COLS]>> {
+        let labels: Option<[String; COLS]> = labels.into().map(|labels| {
+            labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap()
+        }); 
+        self.labels = labels
+    }
+
+    /**
+    Take dataset, set labels, and return dataset. Useful when constructing datasets.
+
+    ```
+    use delfi::Dataset;
+
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let _ = Dataset::columns([&t, &x]).with_labels(["time", "length"]);
+    ```
+
+    See set_labels() for detail on possible parameters. 
+    */
+    pub fn with_labels<'a, Labels>(mut self, labels: Labels) -> Self where Labels: Into<Option<[&'a str; COLS]>> {
+        self.set_labels(labels);
+        self
+    }
+}
+
 /**
 use delfi::Dataset;
 
@@ -27,7 +122,7 @@ where
 }
 
 /** 
-Takes in a set of columns and creates a dataset from these. Labels can optionally be passed as well.
+Takes in a set of columns and creates a dataset from these.
 
 # Examples
 ```
@@ -35,35 +130,14 @@ use delfi::Dataset;
 
 let t = [0, 1, 2, 3, 4, 5];
 let x = [2, 3, 5, 8, 12, 17];
-let _ = Dataset::columns([t, x], ["time", "length"]);
-```
-
-Labels can also be turned off
-
-```
-use delfi::Dataset;
-
-let t = [0, 1, 2, 3, 4, 5];
-let x = [2, 3, 5, 8, 12, 17];
-let _ = Dataset::columns([t, x], None);
-```
-
-and technically they also accept to be passed via `Some(_)`, but why would you?
-
-```
-use delfi::Dataset;
-
-let t = [0, 1, 2, 3, 4, 5];
-let x = [2, 3, 5, 8, 12, 17];
-let _ = Dataset::columns([&t, &x], Some(["time", "length"]));
+let _ = Dataset::columns([t, x]);
 ```
 */
 impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]> {
-    pub fn columns<'a, IntoIter, Iter, Labels>(cols: [IntoIter; COLS], labels: Labels) -> Self 
+    pub fn columns<'a, IntoIter, Iter>(cols: [IntoIter; COLS]) -> Self 
     where
         IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
         Iter: Iterator<Item = DataElement>,
-        Labels: Into<Option<[&'a str; COLS]>>,
     {
         let mut cols: [Iter; COLS] = match cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
             // This segment is matched because unwrap requires Debug to be implemented for IntoIterator
@@ -87,12 +161,9 @@ impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]
             };
             data.push(row);
         }
-        let data = data;
 
-        let labels: Option<[String; COLS]> = labels.into().map(|labels| {
-            labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap()
-        }); 
-        
+        let labels = None;
+
         Dataset { labels, data }
     }
 }
@@ -113,7 +184,24 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;    
+    use super::*;
+
+    #[test]
+    fn new() {
+        let mut dataset = Dataset::new();
+        assert_eq!(dataset.len(), 0);
+        dataset.push([1, 2, 3]);
+        dataset.push([3, 4, 5]);
+        assert_eq!(dataset.len(), 2);
+    }
+
+    #[test]
+    fn labels() {
+        let mut dataset = Dataset::from([[2,3], [4,5]]);
+        assert_eq!(dataset.get_labels(), None);
+        dataset.set_labels(["x", "y"]);
+        assert_eq!(dataset.get_labels(), Some(&[String::from("x"), String::from("y")]));
+    }
 
     #[test]
     fn from_array() {

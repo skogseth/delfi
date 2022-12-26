@@ -6,7 +6,11 @@ We want something along the lines of this
 let tags = { ... };
 let ints = { ... };
 let xs = { ... };
-let ds = Dataset::columns([tags, ints, xs], ["tag", "int", "x"]);
+let ds = dataset!{
+    "tag" => tags, 
+    "int" => ints
+    "x" => xs,
+};
 ds.save("./path/to/file.csv").unwrap();
 ```
 
@@ -17,7 +21,7 @@ use delfi::Dataset;
 
 let t = [0, 1, 2, 3, 4, 5];
 let x = [2, 3, 5, 8, 12, 17];
-let ds = Dataset::columns([t, x], ["time", "length"]);
+let ds = Dataset::columns([t, x]).with_labels(["time", "length"]);
 ds.save("./resources/data/examples/columns.csv").unwrap();
 ```
 
@@ -72,6 +76,6 @@ pub trait Datapoint<const N: usize> {
 #[macro_export]
 macro_rules! dataset {
     ($($name:expr => $values:expr), + $(,)?) => {{
-        delfi::Dataset::columns([$($values),+], [$($name),+])
+        delfi::Dataset::columns([$($values),+]).with_labels([$($name),+])
     }};
 }

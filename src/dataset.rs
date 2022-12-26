@@ -23,16 +23,26 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     }
 
     /**
-    Get current number of rows in dataset
+    Get current number of rows in dataset, which is equal to the number of datapoints, plus 1 if there is a header row
     */
-    pub fn rows(&self) -> usize {
+    pub fn n_rows(&self) -> usize {
+        match self.labels {
+            Some(_) => self.data.len() + 1,
+            None => self.data.len(),
+        }
+    }
+
+    /**
+    Get current number of rows in dataset, which is equal to the number of datapoints, plus 1 if there is a header row
+    */
+    pub fn n_datapoints(&self) -> usize {
         self.data.len()
     }
 
     /**
     Get current number of rows in dataset
     */
-    pub fn cols(&self) -> usize {
+    pub fn n_cols(&self) -> usize {
         COLS
     }
 
@@ -44,7 +54,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     }
 
     /**
-    Set labels of the given dataset. 
+    Set labels for the given dataset. 
     Constructors return dataset with labels set to None unless otherwise specified.
     
     ```
@@ -52,30 +62,32 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
 
     let t = [0, 1, 2, 3, 4, 5];
     let x = [2, 3, 5, 8, 12, 17];
-    let mut dataset = Dataset::columns([t, x]);
+    let mut dataset = Dataset::from_columns([t, x]);
     dataset.set_labels(["time", "length"]);
     ```
 
     Labels can also be turned off
 
     ```
-    use delfi::Dataset;
+    # use delfi::Dataset;
 
-    let t = [0, 1, 2, 3, 4, 5];
-    let x = [2, 3, 5, 8, 12, 17];
-    let mut dataset = Dataset::columns([t, x]);
-    dataset.set_labels(["time", "length"]);
+    # let t = [0, 1, 2, 3, 4, 5];
+    # let x = [2, 3, 5, 8, 12, 17];
+    # let mut dataset = Dataset::from_columns([t, x]);
+    # dataset.set_labels(["time", "length"]);
+
     dataset.set_labels(None);
     ```
 
-    and technically also accept labels to be passed via `Some(_)`, but why would you?
+    They also technically accept labels to be passed via `Some(_)` (but why would you?):
 
     ```
-    use delfi::Dataset;
+    # use delfi::Dataset;
 
-    let t = [0, 1, 2, 3, 4, 5];
-    let x = [2, 3, 5, 8, 12, 17];
-    let mut dataset = Dataset::columns([&t, &x]);
+    # let t = [0, 1, 2, 3, 4, 5];
+    # let x = [2, 3, 5, 8, 12, 17];
+    # let mut dataset = Dataset::from_columns([t, x]);
+
     dataset.set_labels(Some(["time", "length"]));
     ```
     */
@@ -94,7 +106,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
 
     let t = [0, 1, 2, 3, 4, 5];
     let x = [2, 3, 5, 8, 12, 17];
-    let _ = Dataset::columns([&t, &x]).with_labels(["time", "length"]);
+    let _ = Dataset::from_columns([&t, &x]).with_labels(["time", "length"]);
     ```
 
     See set_labels() for detail on possible parameters. 
@@ -103,27 +115,19 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
         self.set_labels(labels);
         self
     }
-}
 
-/**
-use delfi::Dataset;
-
-let dp1 = [0.5, 1.0, 2.4];
-let dp2 = [2.1, 3.6, 5.3];
-let dp3 = [4.1, 3.2, 2.2];
-
-let _ = Dataset::from([dp1, dp2, dp3]); 
-*/
-impl<const COLS: usize, IntoIter, Iter, Data> From<IntoIter> for Dataset<COLS, Data> 
-where 
-    IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
-    Iter: Iterator<Item = Data>,
-    Data: Datapoint<COLS>,
-{
-    fn from(vals: IntoIter) -> Self {
+    /**
+    Create a dataset from an iterator over datapoints
+    */
+    pub fn from_datapoints<IntoIter, Iter>(rows: IntoIter) -> Self 
+    where 
+        IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
+        Iter: Iterator<Item = Data>,
+        Data: Datapoint<COLS>,
+    {
         Dataset {
             labels: None,
-            data: vals.into_iter().collect(),
+            data: rows.into_iter().collect(),
         }
     }
 }
@@ -137,11 +141,11 @@ use delfi::Dataset;
 
 let t = [0, 1, 2, 3, 4, 5];
 let x = [2, 3, 5, 8, 12, 17];
-let _ = Dataset::columns([t, x]);
+let _ = Dataset::from_columns([t, x]);
 ```
 */
 impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]> {
-    pub fn columns<'a, IntoIter, Iter>(cols: [IntoIter; COLS]) -> Self 
+    pub fn from_columns<'a, IntoIter, Iter>(cols: [IntoIter; COLS]) -> Self 
     where
         IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
         Iter: Iterator<Item = DataElement>,
@@ -196,41 +200,78 @@ mod tests {
     #[test]
     fn new() {
         let mut dataset = Dataset::new();
-        assert_eq!(dataset.rows(), 0);
-        assert_eq!(dataset.cols(), 3);
+        assert_eq!(dataset.n_datapoints(), 0);
         dataset.push([1, 2, 3]);
+        assert_eq!(dataset.n_datapoints(), 1);
         dataset.push([3, 4, 5]);
-        assert_eq!(dataset.rows(), 2);
-        assert_eq!(dataset.cols(), 3);
+        assert_eq!(dataset.n_datapoints(), 2);
+        assert_eq!(dataset.n_cols(), 3);
     }
 
     #[test]
     fn labels() {
-        let mut dataset = Dataset::from([[2,3], [4,5]]);
+        let x = [2, 3, 4];
+        let y = [5, 6, 7];
+        let mut dataset = Dataset::from_columns([x,y]);
         assert_eq!(dataset.get_labels(), None);
         dataset.set_labels(["x", "y"]);
         assert_eq!(dataset.get_labels(), Some(&[String::from("x"), String::from("y")]));
     }
 
+    // Check constructors
+    fn check_size<const COLS: usize, Data: Datapoint<COLS>>(dataset: Dataset<COLS, Data>) {
+        assert_eq!(dataset.n_cols(), 2);
+        assert_eq!(dataset.n_rows(), 3);
+    }
+
+    // Rows
     #[test]
-    fn from_array() {
-        let iterator = [[1, 2], [3, 4], [5, 6]];
-        let dataset = Dataset::from(iterator);
+    fn from_datapoints_array() {
+        let array = [[1, 2], [3, 4], [5, 6]];
+        let dataset = Dataset::from_datapoints(array);
         println!("{:?}", dataset);
+        check_size(dataset);
     }
 
     #[test]
-    fn from_iterator() {
+    fn from_datapoints_iterator() {
         let iterator = [[1, 2], [3, 4], [5, 6]].into_iter();
-        let dataset = Dataset::from(iterator);
+        let dataset = Dataset::from_datapoints(iterator);
         println!("{:?}", dataset);
+        check_size(dataset);
     }
     
     #[test]
-    fn from_vec() {
+    fn from_datapoints_vec() {
         let vector = vec![[1, 2], [3, 4], [5, 6]];
-        let dataset = Dataset::from(vector);
+        let dataset = Dataset::from_datapoints(vector);
         println!("{:?}", dataset);
+        check_size(dataset);
+    }
+
+    // Columns
+    #[test]
+    fn from_columns_array() {
+        let array = [[1, 3, 5], [2, 4, 6]];
+        let dataset = Dataset::from_columns(array);
+        println!("{:?}", dataset);
+        check_size(dataset);
+    }
+
+    #[test]
+    fn from_columns_iterator() {
+        let iterator = [[1, 3, 5].into_iter(), [2, 4, 6].into_iter()];
+        let dataset = Dataset::from_columns(iterator);
+        println!("{:?}", dataset);
+        check_size(dataset);
+    }
+    
+    #[test]
+    fn from_columns_vec() {
+        let vector = [vec![1, 3, 5], vec![2, 4, 6]];
+        let dataset = Dataset::from_columns(vector);
+        println!("{:?}", dataset);
+        check_size(dataset);
     }
 }
 

@@ -11,7 +11,7 @@ fn columns_using_arrays() {
     let t = Array::linspace(0., 10., N+1);
     let x = Array::logspace(10., 0., 2., N+1);
     
-    let dataset = Dataset::columns([t,x]).with_labels(["time", "length"]);
+    let dataset = Dataset::from_columns([t,x]).with_labels(["time", "length"]);
     
     let filepath = PathBuf::from(ROOT).join("columns-arrays.csv");
     dataset.save(filepath).unwrap();

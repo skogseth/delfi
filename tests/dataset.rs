@@ -8,7 +8,7 @@ const ROOT: &str = "./resources/data/tests/dataset";
 fn columns_using_arrays() {
     let x = [1, 2, 3];
     let y = [3, 4, 5];
-    let dataset = Dataset::columns([x,y]).with_labels(["x","y"]);
+    let dataset = Dataset::from_columns([x,y]).with_labels(["x","y"]);
     let filepath = PathBuf::from(ROOT).join("columns-arrays.csv");
     dataset.save(filepath).unwrap();
 }
@@ -29,7 +29,7 @@ fn macro_using_arrays() {
 fn columns_using_vectors() {
     let t = vec![0.0, 1.0, 2.0];
     let x = vec![0.5, 2.2, 6.3];
-    let dataset = Dataset::columns([t,x]).with_labels(["time", "length"]);
+    let dataset = Dataset::from_columns([t,x]).with_labels(["time", "length"]);
     let filepath = PathBuf::from(ROOT).join("columns-vectors.csv");
     dataset.save(filepath).unwrap();
 }

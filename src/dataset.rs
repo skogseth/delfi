@@ -23,10 +23,17 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     }
 
     /**
-    Get current length of dataset
+    Get current number of rows in dataset
     */
-    pub fn len(&self) -> usize {
+    pub fn rows(&self) -> usize {
         self.data.len()
+    }
+
+    /**
+    Get current number of rows in dataset
+    */
+    pub fn cols(&self) -> usize {
+        COLS
     }
 
     /**
@@ -189,10 +196,12 @@ mod tests {
     #[test]
     fn new() {
         let mut dataset = Dataset::new();
-        assert_eq!(dataset.len(), 0);
+        assert_eq!(dataset.rows(), 0);
+        assert_eq!(dataset.cols(), 3);
         dataset.push([1, 2, 3]);
         dataset.push([3, 4, 5]);
-        assert_eq!(dataset.len(), 2);
+        assert_eq!(dataset.rows(), 2);
+        assert_eq!(dataset.cols(), 3);
     }
 
     #[test]

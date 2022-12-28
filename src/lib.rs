@@ -105,6 +105,22 @@ pub trait Datapoint<const N: usize> {
 }
 
 /**
+Derive Datapoint trait for a given struct (named or unnamed).
+Unit struct and enums are not supported.
+
+```
+use delfi::Datapoint;
+
+#[derive(Datapoint)]
+struct Count {
+    ch: char,
+    i: usize,
+}
+```
+*/
+pub use delfi_derive::Datapoint;
+
+/**
 Macro for creating a dataset from a set of labelled columns 
 */
 #[macro_export]

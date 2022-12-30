@@ -42,7 +42,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Get current number of rows in dataset
     */
-    pub fn n_cols(&self) -> usize {
+    pub fn n_columns(&self) -> usize {
         COLS
     }
 
@@ -145,12 +145,12 @@ let _ = Dataset::from_columns([t, x]);
 ```
 */
 impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]> {
-    pub fn from_columns<'a, IntoIter, Iter>(cols: [IntoIter; COLS]) -> Self 
+    pub fn from_columns<'a, IntoIter, Iter>(columns: [IntoIter; COLS]) -> Self 
     where
         IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
         Iter: Iterator<Item = DataElement>,
     {
-        let mut cols: [Iter; COLS] = match cols.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
+        let mut columns: [Iter; COLS] = match columns.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
             // This segment is matched because unwrap requires Debug to be implemented for IntoIterator
             Ok(val) => val,
             Err(_) => panic!("This should never be reached"),
@@ -158,7 +158,7 @@ impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]
         let mut data = Vec::new();
         'outer: loop {
             let mut temp = Vec::with_capacity(COLS);
-            for col in cols.iter_mut() {
+            for col in columns.iter_mut() {
                 if let Some(data) = col.next() {
                     temp.push(data);
                 } else {
@@ -205,7 +205,7 @@ mod tests {
         assert_eq!(dataset.n_datapoints(), 1);
         dataset.push([3, 4, 5]);
         assert_eq!(dataset.n_datapoints(), 2);
-        assert_eq!(dataset.n_cols(), 3);
+        assert_eq!(dataset.n_columns(), 3);
     }
 
     #[test]
@@ -218,9 +218,23 @@ mod tests {
         assert_eq!(dataset.get_labels(), Some(&[String::from("x"), String::from("y")]));
     }
 
+    #[test]
+    fn size() {
+        let mut dataset = Dataset::new();
+        dataset.push([1,2,3]);
+        dataset.push([3,4,5]);
+        assert_eq!(dataset.n_columns(), 3);
+        assert_eq!(dataset.n_datapoints(), 2);
+        assert_eq!(dataset.n_rows(), 2);
+        dataset.set_labels(["a", "b", "c"]);
+        assert_eq!(dataset.n_columns(), 3);
+        assert_eq!(dataset.n_datapoints(), 2);
+        assert_eq!(dataset.n_rows(), 3);
+    }
+
     // Check constructors
     fn check_size<const COLS: usize, Data: Datapoint<COLS>>(dataset: Dataset<COLS, Data>) {
-        assert_eq!(dataset.n_cols(), 2);
+        assert_eq!(dataset.n_columns(), 2);
         assert_eq!(dataset.n_rows(), 3);
     }
 

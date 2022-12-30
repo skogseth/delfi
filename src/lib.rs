@@ -118,7 +118,7 @@ struct Count {
 }
 ```
 */
-pub use delfi_derive::Datapoint;
+pub use delfi_macros::Datapoint;
 
 /**
 Macro for creating a dataset from a set of labelled columns 

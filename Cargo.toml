@@ -9,7 +9,7 @@ keywords = ["csv", "data"]
 
 [dependencies]
 csv = "1.1"
-delfi-derive = { path = "./crates/delfi-derive" }
+delfi-macros = { path = "./crates/delfi-macros" }
 
 [dev-dependencies]
 ndarray = "0.15"

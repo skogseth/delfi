@@ -1,5 +1,5 @@
 [package]
-name = "delfi-derive"
+name = "delfi-macros"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,3 +11,4 @@ syn = { version = "1.0", features = ["extra-traits"] }
 
 [lib]
 proc-macro = true
+

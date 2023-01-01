@@ -1,3 +1,6 @@
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+
 /*!
 Delfi is a crate which seeks to minimize the code needed to save your data to a csv-file.
 No matter which form your data takes it should be easy to save it to csv!
@@ -98,7 +101,7 @@ pub struct Dataset<const COLS: usize, Data: Datapoint<COLS>> {
 }
 
 /**
-A datapoint is a collection of dataelements which can be recorded to the csv-format. 
+A datapoint is a collection of dataelements which can be recorded to the csv-format.
 */
 pub trait Datapoint<const N: usize> {
     fn record(&self) -> [String; N];
@@ -121,7 +124,7 @@ struct Count {
 pub use delfi_macros::Datapoint;
 
 /**
-Macro for creating a dataset from a set of labelled columns 
+Macro for creating a dataset from a set of labelled columns
 */
 #[macro_export]
 macro_rules! dataset {

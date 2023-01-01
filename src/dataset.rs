@@ -1,15 +1,15 @@
 use std::path::Path;
 
-use crate::Dataset;
 use crate::Datapoint;
-
+use crate::Dataset;
 
 impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Function for creating new (empty) dataset
     */
+    #[must_use]
     pub fn new() -> Self {
-        Dataset {
+        Self {
             labels: None,
             data: Vec::new(),
         }
@@ -19,12 +19,13 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     Push a new row to the dataset
     */
     pub fn push(&mut self, datapoint: Data) {
-        self.data.push(datapoint)
+        self.data.push(datapoint);
     }
 
     /**
     Get current number of rows in dataset, which is equal to the number of datapoints, plus 1 if there is a header row
     */
+    #[must_use]
     pub fn n_rows(&self) -> usize {
         match self.labels {
             Some(_) => self.data.len() + 1,
@@ -35,6 +36,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Get current number of rows in dataset, which is equal to the number of datapoints, plus 1 if there is a header row
     */
+    #[must_use]
     pub fn n_datapoints(&self) -> usize {
         self.data.len()
     }
@@ -42,6 +44,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Get current number of rows in dataset
     */
+    #[must_use]
     pub fn n_columns(&self) -> usize {
         COLS
     }
@@ -49,14 +52,15 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Get current labels
     */
+    #[must_use]
     pub fn get_labels(&self) -> Option<&[String; COLS]> {
         self.labels.as_ref()
     }
 
     /**
-    Set labels for the given dataset. 
+    Set labels for the given dataset.
     Constructors return dataset with labels set to None unless otherwise specified.
-    
+
     ```
     use delfi::Dataset;
 
@@ -91,11 +95,19 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     dataset.set_labels(Some(["time", "length"]));
     ```
     */
-    pub fn set_labels<'a, Labels>(&mut self, labels: Labels) where Labels: Into<Option<[&'a str; COLS]>> {
+    pub fn set_labels<'a, Labels>(&mut self, labels: Labels)
+    where
+        Labels: Into<Option<[&'a str; COLS]>>,
+    {
         let labels: Option<[String; COLS]> = labels.into().map(|labels| {
-            labels.into_iter().map(|x| x.to_owned()).collect::<Vec<String>>().try_into().unwrap()
-        }); 
-        self.labels = labels
+            labels
+                .into_iter()
+                .map(ToOwned::to_owned)
+                .collect::<Vec<String>>()
+                .try_into()
+                .expect("Failed to coerce vec into array")
+        });
+        self.labels = labels;
     }
 
     /**
@@ -109,9 +121,13 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     let _ = Dataset::from_columns([&t, &x]).with_labels(["time", "length"]);
     ```
 
-    See set_labels() for detail on possible parameters. 
+    See set_labels() for detail on possible parameters.
     */
-    pub fn with_labels<'a, Labels>(mut self, labels: Labels) -> Self where Labels: Into<Option<[&'a str; COLS]>> {
+    #[must_use]
+    pub fn with_labels<'a, Labels>(mut self, labels: Labels) -> Self
+    where
+        Labels: Into<Option<[&'a str; COLS]>>,
+    {
         self.set_labels(labels);
         self
     }
@@ -119,20 +135,29 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Create a dataset from an iterator over datapoints
     */
-    pub fn from_datapoints<IntoIter, Iter>(rows: IntoIter) -> Self 
-    where 
+    pub fn from_datapoints<IntoIter, Iter>(rows: IntoIter) -> Self
+    where
         IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
         Iter: Iterator<Item = Data>,
         Data: Datapoint<COLS>,
     {
-        Dataset {
+        Self {
             labels: None,
             data: rows.into_iter().collect(),
         }
     }
 }
 
-/** 
+/**
+Default is similar to new
+*/
+impl<const COLS: usize, Data: Datapoint<COLS>> Default for Dataset<COLS, Data> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/**
 Takes in a set of columns and creates a dataset from these.
 
 # Examples
@@ -145,16 +170,18 @@ let _ = Dataset::from_columns([t, x]);
 ```
 */
 impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]> {
-    pub fn from_columns<'a, IntoIter, Iter>(columns: [IntoIter; COLS]) -> Self 
+    pub fn from_columns<IntoIter, Iter>(columns: [IntoIter; COLS]) -> Self
     where
         IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
         Iter: Iterator<Item = DataElement>,
     {
-        let mut columns: [Iter; COLS] = match columns.into_iter().map(|x| x.into_iter()).collect::<Vec<Iter>>().try_into() {
-            // This segment is matched because unwrap requires Debug to be implemented for IntoIterator
-            Ok(val) => val,
-            Err(_) => panic!("This should never be reached"),
-        };
+        let mut columns: [Iter; COLS] = columns
+            .into_iter()
+            .map(IntoIterator::into_iter)
+            .collect::<Vec<Iter>>()
+            .try_into()
+            .map_err(|_| ())
+            .expect("Failed to coerce vec into array");
         let mut data = Vec::new();
         'outer: loop {
             let mut temp = Vec::with_capacity(COLS);
@@ -165,11 +192,11 @@ impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]
                     break 'outer;
                 }
             }
-            let row: [DataElement; COLS] = match temp.try_into() {
-                // This segment is matched because unwrap requires Debug to be implemented for DataElement
-                Ok(val) => val,
-                Err(_) => panic!("This should never be reached"),
-            };
+            // map_err is required to avoid restricting Debug to be implemented for IntoIterator
+            let row: [DataElement; COLS] = temp
+                .try_into()
+                .map_err(|_| ())
+                .expect("Failed to coerce vec into array");
             data.push(row);
         }
 
@@ -212,17 +239,20 @@ mod tests {
     fn labels() {
         let x = [2, 3, 4];
         let y = [5, 6, 7];
-        let mut dataset = Dataset::from_columns([x,y]);
+        let mut dataset = Dataset::from_columns([x, y]);
         assert_eq!(dataset.get_labels(), None);
         dataset.set_labels(["x", "y"]);
-        assert_eq!(dataset.get_labels(), Some(&[String::from("x"), String::from("y")]));
+        assert_eq!(
+            dataset.get_labels(),
+            Some(&[String::from("x"), String::from("y")])
+        );
     }
 
     #[test]
     fn size() {
         let mut dataset = Dataset::new();
-        dataset.push([1,2,3]);
-        dataset.push([3,4,5]);
+        dataset.push([1, 2, 3]);
+        dataset.push([3, 4, 5]);
         assert_eq!(dataset.n_columns(), 3);
         assert_eq!(dataset.n_datapoints(), 2);
         assert_eq!(dataset.n_rows(), 2);
@@ -254,7 +284,7 @@ mod tests {
         println!("{:?}", dataset);
         check_size(dataset);
     }
-    
+
     #[test]
     fn from_datapoints_vec() {
         let vector = vec![[1, 2], [3, 4], [5, 6]];
@@ -279,7 +309,7 @@ mod tests {
         println!("{:?}", dataset);
         check_size(dataset);
     }
-    
+
     #[test]
     fn from_columns_vec() {
         let vector = [vec![1, 3, 5], vec![2, 4, 6]];
@@ -288,4 +318,3 @@ mod tests {
         check_size(dataset);
     }
 }
-

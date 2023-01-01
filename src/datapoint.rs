@@ -2,7 +2,11 @@ use crate::Datapoint;
 
 impl<const N: usize, Data: ToString> Datapoint<N> for [Data; N] {
     fn record(&self) -> [String; N] {
-        self.iter().map(Data::to_string).collect::<Vec<_>>().try_into().unwrap()
+        self.iter()
+            .map(Data::to_string)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap()
     }
 }
 
@@ -74,7 +78,5 @@ mod tests {
         let record = datapoint.record();
         let compare = ["hello".to_string(), (4).to_string()];
         assert_eq!(record, compare);
-
     }
 }
-

@@ -1,3 +1,7 @@
+/*!
+Implementations on the [Dataset] struct
+*/
+
 use std::path::Path;
 
 use crate::Datapoint;
@@ -74,12 +78,12 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
 
     ```
     # use delfi::Dataset;
-
+    #
     # let t = [0, 1, 2, 3, 4, 5];
     # let x = [2, 3, 5, 8, 12, 17];
     # let mut dataset = Dataset::from_columns([t, x]);
     # dataset.set_labels(["time", "length"]);
-
+    #
     dataset.set_labels(None);
     ```
 
@@ -87,11 +91,11 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
 
     ```
     # use delfi::Dataset;
-
+    #
     # let t = [0, 1, 2, 3, 4, 5];
     # let x = [2, 3, 5, 8, 12, 17];
     # let mut dataset = Dataset::from_columns([t, x]);
-
+    #
     dataset.set_labels(Some(["time", "length"]));
     ```
     */
@@ -135,6 +139,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     /**
     Create a dataset from an iterator over datapoints
     */
+    #[must_use]
     pub fn from_datapoints<IntoIter, Iter>(rows: IntoIter) -> Self
     where
         IntoIter: IntoIterator<Item = Data, IntoIter = Iter>,
@@ -149,7 +154,7 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
 }
 
 /**
-Default is similar to new
+Default is equivalent to new
 */
 impl<const COLS: usize, Data: Datapoint<COLS>> Default for Dataset<COLS, Data> {
     fn default() -> Self {
@@ -206,6 +211,34 @@ impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]
     }
 }
 
+/**
+Saves a dataset to a given file. The filepath must be valid.
+Accepts anything path-like.
+
+# Examples
+```
+# use delfi::Dataset;
+#
+# let t = [0, 1, 2, 3, 4, 5];
+# let x = [2, 3, 5, 8, 12, 17];
+# let dataset = Dataset::from_columns([t, x]);
+#
+dataset.save("./resources/data/examples/save-short.csv").unwrap();
+```
+
+```
+# use delfi::Dataset;
+#
+# let t = [0, 1, 2, 3, 4, 5];
+# let x = [2, 3, 5, 8, 12, 17];
+# let dataset = Dataset::from_columns([t, x]);
+#
+let directory = std::fs::canonicalize("./resources/data/examples/").unwrap();
+let filepath = directory.join("save-long.csv");
+dataset.save(&filepath).unwrap();
+```
+
+*/
 impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
     pub fn save<P: AsRef<Path>>(self, filepath: P) -> Result<(), std::io::Error> {
         let mut writer = csv::Writer::from_path(filepath)?;

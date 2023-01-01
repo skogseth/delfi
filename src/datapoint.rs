@@ -1,3 +1,7 @@
+/*!
+Implementations on the [Datapoint] trait
+*/
+
 use crate::Datapoint;
 
 impl<const N: usize, Data: ToString> Datapoint<N> for [Data; N] {

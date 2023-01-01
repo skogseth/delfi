@@ -46,7 +46,7 @@ pub mod dataset;
 pub mod datapoint;
 
 /**
-A dataset is a collection of datapoints.
+A dataset is a collection of datapoints (for more information on this see the [Datapoint] trait).
 
 They can be constructed in a multitude of ways. Two common ways are:
 
@@ -54,21 +54,22 @@ From a set of datapoints:
 ```
 use delfi::Dataset;
 
-let dp1 = [0, 1, 2];
-let dp2 = [8, 3, 5];
-let dp3 = [5, 4, 3];
-let ds = Dataset::from_datapoints([dp1, dp2, dp3]);
-# // ds.save("./resources/data/examples/rows.csv").unwrap();
+let dp1 = [0, 2];
+let dp2 = [1, 3];
+let dp3 = [2, 5];
+let dp4 = [3, 8];
+let ds = Dataset::from_datapoints([dp1, dp2, dp3, dp4]);
+# ds.save("./resources/data/examples/datapoints.csv").unwrap();
 ```
 
 From columns of data:
 ```
 use delfi::Dataset;
 
-let t = [0, 1, 2, 3, 4, 5];
-let x = [2, 3, 5, 8, 12, 17];
+let t = [0, 1, 2, 3];
+let x = [2, 3, 5, 8];
 let ds = Dataset::from_columns([t, x]);
-# // ds.save("./resources/data/examples/columns.csv").unwrap();
+# ds.save("./resources/data/examples/columns.csv").unwrap();
 ```
 
 One can also add labels in a multitude of ways, the simplest being whilst constructing the dataset:
@@ -78,7 +79,7 @@ use delfi::Dataset;
 let t = [0, 1, 2, 3, 4, 5];
 let x = [2, 3, 5, 8, 12, 17];
 let ds = Dataset::from_columns([t, x]).with_labels(["time", "length"]);
-# ds.save("./resources/data/examples/columns.csv").unwrap();
+# ds.save("./resources/data/examples/labels.csv").unwrap();
 ```
 
 This is equivalent to using the dataset-macro:
@@ -108,8 +109,7 @@ pub trait Datapoint<const N: usize> {
 }
 
 /**
-Derive Datapoint trait for a given struct (named or unnamed).
-Unit struct and enums are not supported.
+Derive Datapoint trait for a given struct (named or unnamed). Unit structs and enums are not supported.
 
 ```
 use delfi::Datapoint;
@@ -125,10 +125,22 @@ pub use delfi_macros::Datapoint;
 
 /**
 Macro for creating a dataset from a set of labelled columns
+
+# Examples
+```
+use delfi::dataset;
+
+let t = [0, 1, 2, 3, 4, 5];
+let x = [2, 3, 5, 8, 12, 17];
+let ds = dataset!{
+    "time" => t,
+    "length" => x,
+};
+```
 */
 #[macro_export]
 macro_rules! dataset {
-    ($($name:expr => $values:expr), + $(,)?) => {{
-        delfi::Dataset::from_columns([$($values),+]).with_labels([$($name),+])
+    ($($name:expr => $value:expr), + $(,)?) => {{
+        delfi::Dataset::from_columns([$($value),+]).with_labels([$($name),+])
     }};
 }

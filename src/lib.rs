@@ -122,6 +122,7 @@ struct Count {
 }
 ```
 */
+#[cfg(feature = "macros")]
 pub use delfi_macros::Datapoint;
 
 /**

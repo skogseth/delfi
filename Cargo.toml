@@ -7,9 +7,12 @@ description = "Conveniently writing data to csv-files"
 repository = "https://github.com/skogseth/delfi"
 keywords = ["csv", "data"]
 
+[features]
+macros = ["delfi-macros"]
+
 [dependencies]
 csv = "1.1"
-delfi-macros = { path = "./crates/delfi-macros" }
+delfi-macros = { path = "./crates/delfi-macros", optional = true }
 
 [dev-dependencies]
 ndarray = "0.15"

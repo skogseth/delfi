@@ -1,5 +1,5 @@
 # Delfi
-Rust crate for conveniently writing data to csv-files. The crate aims to be a minimal interface for saving data to csv such that this is not a considerable part of your program, preferably only taking up one to three lines of code.
+Rust crate for conveniently writing data to csv-files. The crate aims to be a minimal interface for saving data to csv such that this is not a considerable part of your program, preferably only taking up a few lines of code.
 
 ## Usage
 A basic use of delfi is shown below:
@@ -44,3 +44,21 @@ let dataset = dataset!{
 
 dataset.save("./path/to/file.csv").unwrap();
 ```
+
+## Feature: macros
+Work is currently being done to allow custom datastructures which combine multiple types. The current state allows patterns such as this (named structs are also supported):
+
+```rust
+use delfi::{Datapoint, Dataset};
+
+#[derive(Datapoint)]
+struct MyDatapoint(String, usize, f64);
+
+let dp1 = MyDatapoint("Hello".to_owned(), 4, 10.2);
+let dp2 = MyDatapoint("World".to_owned(), 5, 3.14);
+let dataset = Dataset::from_datapoints([dp1, dp2]);
+
+dataset.save("./path/to/file.csv").unwrap();
+```
+
+Hopefully this will be expanded upon in the future to allow for more ergonomic constructors.

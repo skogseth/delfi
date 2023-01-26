@@ -1,6 +1,6 @@
 [package]
 name = "delfi"
-version = "0.0.5"
+version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "Conveniently writing data to csv-files"

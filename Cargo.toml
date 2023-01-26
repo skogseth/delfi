@@ -1,14 +1,18 @@
 [package]
 name = "delfi"
-version = "0.0.5"
+version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "Conveniently writing data to csv-files"
 repository = "https://github.com/skogseth/delfi"
 keywords = ["csv", "data"]
 
+[features]
+macros = ["delfi-macros"]
+
 [dependencies]
 csv = "1.1"
+delfi-macros = { path = "./crates/delfi-macros", version = "0.1.0", optional = true }
 
 [dev-dependencies]
 ndarray = "0.15"

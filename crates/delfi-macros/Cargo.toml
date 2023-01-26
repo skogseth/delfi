@@ -1,0 +1,16 @@
+[package]
+name = "delfi-macros"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Macros associated with the delfi crate"
+repository = "https://github.com/skogseth/delfi"
+keywords = ["csv", "data"]
+
+[dependencies]
+quote = "*"
+syn = { version = "1.0", features = ["extra-traits"] }
+
+[lib]
+proc-macro = true
+

@@ -16,4 +16,3 @@ delfi-macros = { path = "./crates/delfi-macros", optional = true }
 
 [dev-dependencies]
 ndarray = "0.15"
-

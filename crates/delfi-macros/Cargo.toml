@@ -2,8 +2,10 @@
 name = "delfi-macros"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+description = "Macros associated with the delfi crate"
+repository = "https://github.com/skogseth/delfi"
+keywords = ["csv", "data"]
 
 [dependencies]
 quote = "*"

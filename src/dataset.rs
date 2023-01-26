@@ -162,19 +162,19 @@ impl<const COLS: usize, Data: Datapoint<COLS>> Default for Dataset<COLS, Data> {
     }
 }
 
-/**
-Takes in a set of columns and creates a dataset from these.
-
-# Examples
-```
-use delfi::Dataset;
-
-let t = [0, 1, 2, 3, 4, 5];
-let x = [2, 3, 5, 8, 12, 17];
-let _ = Dataset::from_columns([t, x]);
-```
-*/
 impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]> {
+    /**
+    Takes in a set of columns and creates a dataset from these.
+
+    # Examples
+    ```
+    use delfi::Dataset;
+
+    let t = [0, 1, 2, 3, 4, 5];
+    let x = [2, 3, 5, 8, 12, 17];
+    let _ = Dataset::from_columns([t, x]);
+    ```
+    */
     pub fn from_columns<IntoIter, Iter>(columns: [IntoIter; COLS]) -> Self
     where
         IntoIter: IntoIterator<Item = DataElement, IntoIter = Iter>,
@@ -211,35 +211,35 @@ impl<const COLS: usize, DataElement: ToString> Dataset<COLS, [DataElement; COLS]
     }
 }
 
-/**
-Saves a dataset to a given file. The filepath must be valid.
-Accepts anything path-like.
-
-# Examples
-```
-# use delfi::Dataset;
-#
-# let t = [0, 1, 2, 3, 4, 5];
-# let x = [2, 3, 5, 8, 12, 17];
-# let dataset = Dataset::from_columns([t, x]);
-#
-dataset.save("./resources/data/examples/save-short.csv").unwrap();
-```
-
-```
-# use delfi::Dataset;
-#
-# let t = [0, 1, 2, 3, 4, 5];
-# let x = [2, 3, 5, 8, 12, 17];
-# let dataset = Dataset::from_columns([t, x]);
-#
-let directory = std::fs::canonicalize("./resources/data/examples/").unwrap();
-let filepath = directory.join("save-long.csv");
-dataset.save(&filepath).unwrap();
-```
-
-*/
 impl<const COLS: usize, Data: Datapoint<COLS>> Dataset<COLS, Data> {
+    /**
+    Saves a dataset to a given file. The filepath must be valid.
+    Accepts anything path-like.
+
+    # Examples
+    ```
+    # use delfi::Dataset;
+    #
+    # let t = [0, 1, 2, 3, 4, 5];
+    # let x = [2, 3, 5, 8, 12, 17];
+    # let dataset = Dataset::from_columns([t, x]);
+    #
+    dataset.save("./resources/data/examples/save-short.csv").unwrap();
+    ```
+
+    ```
+    # use delfi::Dataset;
+    #
+    # let t = [0, 1, 2, 3, 4, 5];
+    # let x = [2, 3, 5, 8, 12, 17];
+    # let dataset = Dataset::from_columns([t, x]);
+    #
+    let directory = std::fs::canonicalize("./resources/data/examples/").unwrap();
+    let filepath = directory.join("save-long.csv");
+    dataset.save(&filepath).unwrap();
+    ```
+
+    */
     pub fn save<P: AsRef<Path>>(self, filepath: P) -> Result<(), std::io::Error> {
         let mut writer = csv::Writer::from_path(filepath)?;
         if let Some(labels) = self.labels {

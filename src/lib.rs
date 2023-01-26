@@ -1,5 +1,6 @@
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
 
 /*!
 Delfi is a crate which seeks to minimize the code needed to save your data to a csv-file.

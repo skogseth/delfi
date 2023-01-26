@@ -1,5 +1,4 @@
 use delfi::Datapoint;
-use delfi_derive::Datapoint;
 
 #[derive(Debug, Datapoint)]
 struct Point(f64, f64);

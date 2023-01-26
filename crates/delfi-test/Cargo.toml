@@ -7,5 +7,4 @@ edition = "2021"
 
 [dependencies]
 delfi = { path = "../../" }
-delfi-derive = { path = "../delfi-derive" }
-
+delfi-macros = { path = "../delfi-macros" }

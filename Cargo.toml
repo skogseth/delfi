@@ -12,7 +12,7 @@ macros = ["delfi-macros"]
 
 [dependencies]
 csv = "1.1"
-delfi-macros = { version = "0.1.0", optional = true }
+delfi-macros = { path = "./crates/delfi-macros", version = "0.1.0", optional = true }
 
 [dev-dependencies]
 ndarray = "0.15"

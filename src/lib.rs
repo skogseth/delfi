@@ -97,16 +97,15 @@ let ds = dataset!{
 ```
 */
 #[derive(Debug, Clone)]
-pub struct Dataset<const COLS: usize, Data: Datapoint<COLS>> {
-    labels: Option<[String; COLS]>,
-    data: Vec<Data>,
+pub struct Dataset<D: Datapoint> {
+    data: Vec<D>,
 }
 
 /**
 A datapoint is a collection of dataelements which can be recorded to the csv-format.
 */
-pub trait Datapoint<const N: usize> {
-    fn record(&self) -> [String; N];
+pub trait Datapoint {
+    fn record(&self, delimiter: char) -> String;
 }
 
 /**
@@ -124,7 +123,7 @@ struct Count {
 */
 #[cfg(feature = "macros")]
 pub use delfi_macros::Datapoint;
-
+/*
 /**
 Macro for creating a dataset from a set of labelled columns
 
@@ -146,3 +145,4 @@ macro_rules! dataset {
         delfi::Dataset::from_columns([$($value),+]).with_labels([$($name),+])
     }};
 }
+*/
